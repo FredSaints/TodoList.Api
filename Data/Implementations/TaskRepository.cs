@@ -13,50 +13,58 @@ public class TaskRepository : ITaskRepository
     private readonly IDatabase _database;
     private readonly ILogger<TaskRepository> _logger;
 
+    // SQL Server error numbers for known business rules
+    private const int SqlErrorTaskNotFound = 50001;
+    private const int SqlErrorValidationFailed = 50002;
+
     public TaskRepository(IDatabase database, ILogger<TaskRepository> logger)
     {
         _database = database;
         _logger = logger;
     }
 
-    public async Task<(List<TaskItem> Tasks, int TotalCount)> GetAllTasksAsync(int pageNumber, int pageSize, bool? completed = null)
+    public async Task<(List<TaskItem> Tasks, int TotalCount)> GetAllTasksAsync(
+        int pageNumber,
+        int pageSize,
+        bool? completed = null,
+        CancellationToken cancellationToken = default)
     {
         var tasks = new List<TaskItem>();
         int totalCount = 0;
 
         try
         {
-            using var connection = _database.CreateConnection();
-            using var command = connection.CreateCommand();
+            using var connection = (SqlConnection)_database.CreateConnection();
+            using var command = new SqlCommand("sp_GetAllTasks", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            command.CommandText = "sp_GetAllTasks";
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@PageNumber", SqlDbType.Int)
+            {
+                Value = pageNumber
+            });
 
-            var pageNumberParam = command.CreateParameter();
-            pageNumberParam.ParameterName = "@PageNumber";
-            pageNumberParam.Value = pageNumber;
-            command.Parameters.Add(pageNumberParam);
+            command.Parameters.Add(new SqlParameter("@PageSize", SqlDbType.Int)
+            {
+                Value = pageSize
+            });
 
-            var pageSizeParam = command.CreateParameter();
-            pageSizeParam.ParameterName = "@PageSize";
-            pageSizeParam.Value = pageSize;
-            command.Parameters.Add(pageSizeParam);
+            command.Parameters.Add(new SqlParameter("@CompletedFilter", SqlDbType.Bit)
+            {
+                Value = completed.HasValue ? (object)completed.Value : DBNull.Value
+            });
 
-            var completedParam = command.CreateParameter();
-            completedParam.ParameterName = "@CompletedFilter";
-            completedParam.Value = completed.HasValue ? (object)completed.Value : DBNull.Value;
-            command.Parameters.Add(completedParam);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            using var reader = await (command as SqlCommand)!.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            if (await reader.ReadAsync(cancellationToken))
             {
                 totalCount = reader.GetInt32(0);
             }
 
-            if (await reader.NextResultAsync())
+            if (await reader.NextResultAsync(cancellationToken))
             {
-                while (await reader.ReadAsync())
+                while (await reader.ReadAsync(cancellationToken))
                 {
                     tasks.Add(MapReaderToTask(reader));
                 }
@@ -74,24 +82,21 @@ public class TaskRepository : ITaskRepository
         }
     }
 
-    public async Task<TaskItem?> GetTaskByIdAsync(int id)
+    public async Task<TaskItem?> GetTaskByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var connection = _database.CreateConnection();
-            using var command = connection.CreateCommand();
+            using var connection = (SqlConnection)_database.CreateConnection();
+            using var command = new SqlCommand("sp_GetTaskById", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            command.CommandText = "sp_GetTaskById";
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = id });
 
-            var idParam = command.CreateParameter();
-            idParam.ParameterName = "@Id";
-            idParam.Value = id;
-            command.Parameters.Add(idParam);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            using var reader = await (command as SqlCommand)!.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            if (await reader.ReadAsync(cancellationToken))
             {
                 var task = MapReaderToTask(reader);
                 _logger.LogInformation("Task {Id} retrieved successfully", id);
@@ -108,29 +113,32 @@ public class TaskRepository : ITaskRepository
         }
     }
 
-    public async Task<TaskItem> CreateTaskAsync(string title, string? description)
+    public async Task<TaskItem> CreateTaskAsync(
+        string title,
+        string? description,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            using var connection = _database.CreateConnection();
-            using var command = connection.CreateCommand();
+            using var connection = (SqlConnection)_database.CreateConnection();
+            using var command = new SqlCommand("sp_CreateTask", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            command.CommandText = "sp_CreateTask";
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@Title", SqlDbType.NVarChar, 100)
+            {
+                Value = title
+            });
 
-            var titleParam = command.CreateParameter();
-            titleParam.ParameterName = "@Title";
-            titleParam.Value = title;
-            command.Parameters.Add(titleParam);
+            command.Parameters.Add(new SqlParameter("@Description", SqlDbType.NVarChar, -1) // -1 = MAX
+            {
+                Value = string.IsNullOrEmpty(description) ? DBNull.Value : description
+            });
 
-            var descParam = command.CreateParameter();
-            descParam.ParameterName = "@Description";
-            descParam.Value = string.IsNullOrEmpty(description) ? DBNull.Value : description;
-            command.Parameters.Add(descParam);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            using var reader = await (command as SqlCommand)!.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            if (await reader.ReadAsync(cancellationToken))
             {
                 var task = MapReaderToTask(reader);
                 _logger.LogInformation("Task created successfully with ID {Id}", task.Id);
@@ -143,7 +151,7 @@ public class TaskRepository : ITaskRepository
         {
             _logger.LogError(ex, "Database error while creating task");
 
-            if (ex.Message.Contains("Title must be between"))
+            if (ex.Number == SqlErrorValidationFailed)
             {
                 throw new ArgumentException(ex.Message, nameof(title));
             }
@@ -152,39 +160,41 @@ public class TaskRepository : ITaskRepository
         }
     }
 
-    public async Task<TaskItem?> UpdateTaskAsync(int id, string title, string? description, bool isCompleted)
+    public async Task<TaskItem?> UpdateTaskAsync(
+        int id,
+        string title,
+        string? description,
+        bool isCompleted,
+        CancellationToken cancellationToken = default)
     {
         try
         {
-            using var connection = _database.CreateConnection();
-            using var command = connection.CreateCommand();
+            using var connection = (SqlConnection)_database.CreateConnection();
+            using var command = new SqlCommand("sp_UpdateTask", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            command.CommandText = "sp_UpdateTask";
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = id });
 
-            var idParam = command.CreateParameter();
-            idParam.ParameterName = "@Id";
-            idParam.Value = id;
-            command.Parameters.Add(idParam);
+            command.Parameters.Add(new SqlParameter("@Title", SqlDbType.NVarChar, 100)
+            {
+                Value = title
+            });
 
-            var titleParam = command.CreateParameter();
-            titleParam.ParameterName = "@Title";
-            titleParam.Value = title;
-            command.Parameters.Add(titleParam);
+            command.Parameters.Add(new SqlParameter("@Description", SqlDbType.NVarChar, -1)
+            {
+                Value = string.IsNullOrEmpty(description) ? DBNull.Value : description
+            });
 
-            var descParam = command.CreateParameter();
-            descParam.ParameterName = "@Description";
-            descParam.Value = string.IsNullOrEmpty(description) ? DBNull.Value : description;
-            command.Parameters.Add(descParam);
+            command.Parameters.Add(new SqlParameter("@IsCompleted", SqlDbType.Bit)
+            {
+                Value = isCompleted
+            });
 
-            var completedParam = command.CreateParameter();
-            completedParam.ParameterName = "@IsCompleted";
-            completedParam.Value = isCompleted;
-            command.Parameters.Add(completedParam);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            using var reader = await (command as SqlCommand)!.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            if (await reader.ReadAsync(cancellationToken))
             {
                 var task = MapReaderToTask(reader);
                 _logger.LogInformation("Task {Id} updated successfully", id);
@@ -198,11 +208,11 @@ public class TaskRepository : ITaskRepository
         {
             _logger.LogError(ex, "Database error while updating task {Id}", id);
 
-            if (ex.Message.Contains("Task not found"))
+            if (ex.Number == SqlErrorTaskNotFound)
             {
                 return null;
             }
-            if (ex.Message.Contains("Title must be between"))
+            if (ex.Number == SqlErrorValidationFailed)
             {
                 throw new ArgumentException(ex.Message, nameof(title));
             }
@@ -211,24 +221,21 @@ public class TaskRepository : ITaskRepository
         }
     }
 
-    public async Task<bool> DeleteTaskAsync(int id)
+    public async Task<bool> DeleteTaskAsync(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            using var connection = _database.CreateConnection();
-            using var command = connection.CreateCommand();
+            using var connection = (SqlConnection)_database.CreateConnection();
+            using var command = new SqlCommand("sp_DeleteTask", connection)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            command.CommandText = "sp_DeleteTask";
-            command.CommandType = CommandType.StoredProcedure;
+            command.Parameters.Add(new SqlParameter("@Id", SqlDbType.Int) { Value = id });
 
-            var idParam = command.CreateParameter();
-            idParam.ParameterName = "@Id";
-            idParam.Value = id;
-            command.Parameters.Add(idParam);
+            using var reader = await command.ExecuteReaderAsync(cancellationToken);
 
-            using var reader = await (command as SqlCommand)!.ExecuteReaderAsync();
-
-            if (await reader.ReadAsync())
+            if (await reader.ReadAsync(cancellationToken))
             {
                 var success = reader.GetInt32(0) == 1;
                 if (success)
@@ -245,7 +252,7 @@ public class TaskRepository : ITaskRepository
         {
             _logger.LogError(ex, "Database error while deleting task {Id}", id);
 
-            if (ex.Message.Contains("Task not found"))
+            if (ex.Number == SqlErrorTaskNotFound)
             {
                 return false;
             }

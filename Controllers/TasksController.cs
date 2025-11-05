@@ -61,7 +61,8 @@ public class TasksController : ControllerBase
                 return BadRequest(new { Message = "Page size must be between 1 and 100" });
             }
 
-            var (tasks, totalCount) = await _taskRepository.GetAllTasksAsync(pageNumber, pageSize, completed);
+            var (tasks, totalCount) = await _taskRepository.GetAllTasksAsync(
+                pageNumber, pageSize, completed, HttpContext.RequestAborted);
 
             var response = new PaginatedTaskResponse
             {
@@ -95,7 +96,7 @@ public class TasksController : ControllerBase
     {
         try
         {
-            var task = await _taskRepository.GetTaskByIdAsync(id);
+            var task = await _taskRepository.GetTaskByIdAsync(id, HttpContext.RequestAborted);
 
             if (task == null)
             {
@@ -138,8 +139,9 @@ public class TasksController : ControllerBase
         }
 
         try
-        {            
-            var task = await _taskRepository.CreateTaskAsync(request.Title, request.Description);
+        {
+            var task = await _taskRepository.CreateTaskAsync(
+                request.Title, request.Description, HttpContext.RequestAborted);
 
             var response = new TaskResponse
             {
@@ -202,8 +204,8 @@ public class TasksController : ControllerBase
                 id,
                 request.Title,
                 request.Description,
-                request.IsCompleted
-            );
+                request.IsCompleted,
+                HttpContext.RequestAborted);
 
             if (task == null)
             {
@@ -240,7 +242,7 @@ public class TasksController : ControllerBase
     {
         try
         {
-            var deleted = await _taskRepository.DeleteTaskAsync(id);
+            var deleted = await _taskRepository.DeleteTaskAsync(id, HttpContext.RequestAborted);
 
             if (!deleted)
             {

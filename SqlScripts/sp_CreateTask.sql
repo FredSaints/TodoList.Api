@@ -1,7 +1,6 @@
 USE TodoListDB;
 GO
 
-
 IF NOT EXISTS (
     SELECT 1
     FROM sys.objects
@@ -25,15 +24,18 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
+    -- Validation: Check title length
+    -- Error 50002 = Validation Failed
     IF LEN(@Title) < 3 OR LEN(@Title) > 100
     BEGIN
-        RAISERROR('Title must be between 3 and 100 characters.', 16, 1);
+        THROW 50002, 'Title must be between 3 and 100 characters', 1;
         RETURN;
-    END;
+    END
 
     INSERT INTO dbo.Tasks (Title, Description, CreateDate, IsCompleted)
     VALUES (@Title, @Description, GETDATE(), 0);
 
+    -- Return the newly created task
     SELECT
         Id,
         Title,
