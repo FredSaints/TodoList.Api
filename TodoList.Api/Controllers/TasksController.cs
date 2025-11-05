@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
-using TodoList.Api.Api.Models;
 using TodoList.Api.Data.Interfaces;
 using TodoList.Api.Dtos;
 using TodoList.Api.Models;

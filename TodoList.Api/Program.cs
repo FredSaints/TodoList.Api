@@ -1,7 +1,7 @@
-using TodoList.Api.Data.Implementations;
-using TodoList.Api.Data.Interfaces;
 using FluentValidation;
 using Serilog;
+using TodoList.Api.Data.Implementations;
+using TodoList.Api.Data.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
