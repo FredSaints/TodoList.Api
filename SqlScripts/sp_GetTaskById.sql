@@ -1,0 +1,22 @@
+USE TodoListDB;
+GO
+
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE OR ALTER PROCEDURE sp_GetTaskById
+	@Id INT
+AS
+BEGIN
+	SET NOCOUNT ON;
+	SELECT 
+		Id,
+		Title,
+		Description,
+		CreateDate,
+		IsCompleted
+	FROM Tasks
+	WHERE Id = @Id;
+END
+GO

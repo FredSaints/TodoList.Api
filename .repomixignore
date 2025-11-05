@@ -1,0 +1,14 @@
+**/*.jpg
+**/*.png
+**/*.csproj
+**/*.sln
+**/*.md
+**/lib/**
+**/bin/**
+**/obj/**
+**/Migrations/**
+**/migrations/**
+**/.github/**
+**/.vs/**
+**/CondoSphere_Uploads*
+**/Logs/**
