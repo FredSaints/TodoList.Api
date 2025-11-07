@@ -2,11 +2,11 @@
 
 API RESTful para gestão de tarefas desenvolvida em .NET 8.0 com SQL Server e ADO.NET.
 
-## 📋 Descrição
+## Descrição
 
 API de backend para uma ferramenta interna de produtividade que permite aos colaboradores registrar, consultar, atualizar e remover tarefas do dia a dia.
 
-## 🔧 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - .NET 8.0
 - SQL Server
@@ -16,13 +16,13 @@ API de backend para uma ferramenta interna de produtividade que permite aos cola
 - Swagger/OpenAPI
 - xUnit (testes unitários)
 
-## 📦 Pré-requisitos
+## Pré-requisitos
 
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0)
 - [SQL Server](https://www.microsoft.com/sql-server/sql-server-downloads) (Express ou superior)
 - Editor de código (Visual Studio, VS Code, Rider)
 
-## 🚀 Setup do Projeto
+## Setup do Projeto
 
 ### 1. Clonar o Repositório
 
@@ -84,7 +84,7 @@ A API estará disponível em:
 - HTTP: `http://localhost:5219`
 - Swagger UI: `https://localhost:7193/swagger`
 
-## 📚 Endpoints da API
+## Endpoints da API
 
 ### 1. Listar Todas as Tarefas
 
@@ -293,7 +293,7 @@ curl -X DELETE "https://localhost:7193/tasks/1" -k
 }
 ```
 
-## 🧪 Executar Testes
+## Executar Testes
 
 ### Executar Todos os Testes
 
@@ -307,7 +307,7 @@ dotnet test
 dotnet test /p:CollectCoverage=true
 ```
 
-## 📝 Regras de Negócio
+## Regras de Negócio
 
 1. **Título obrigatório**: Deve ter entre 3 e 100 caracteres
 2. **Descrição opcional**: Pode ser nula ou vazia
@@ -315,7 +315,7 @@ dotnet test /p:CollectCoverage=true
 4. **Exclusão definitiva**: Tarefas removidas são permanentemente apagadas
 5. **Data de criação automática**: Definida pelo sistema no momento da criação
 
-## 🔒 Validações
+## Validações
 
 - **Título vazio**: Retorna 400 Bad Request
 - **Título menor que 3 caracteres**: Retorna 400 Bad Request
@@ -323,7 +323,7 @@ dotnet test /p:CollectCoverage=true
 - **ID inexistente**: Retorna 404 Not Found
 - **Parâmetros de paginação inválidos**: Retorna 400 Bad Request
 
-## 📂 Estrutura do Projeto
+## Estrutura do Projeto
 
 ```
 TodoList.Api/
@@ -356,23 +356,23 @@ TodoList.Api/
 └── Program.cs                      # Configuração da aplicação
 ```
 
-## 📊 Features Implementadas
+## Features Implementadas
 
 ### Requisitos Obrigatórios
-✅ Web API REST em .NET 8.0  
-✅ Testes Unitários  
-✅ Scripts SQL Server  
-✅ Comunicação via ADO.NET (sem EF)  
-✅ Documentação Swagger  
+Web API REST em .NET 8.0  
+Testes Unitários  
+Scripts SQL Server  
+Comunicação via ADO.NET (sem EF)  
+Documentação Swagger  
 
 ### Features Opcionais
-✅ Filtro por status (completed=true/false)  
-✅ Paginação completa  
-✅ Stored Procedures  
-✅ Log de erros em ficheiro (Serilog)  
-✅ Projeto no GitHub  
+Filtro por status (completed=true/false)  
+Paginação completa  
+Stored Procedures  
+Log de erros em ficheiro (Serilog)  
+Projeto no GitHub  
 
-## 🔍 Logs
+## Logs
 
 Os logs da aplicação são guardados em:
 ```
@@ -386,7 +386,7 @@ Formato do log:
 2025-11-06 20:31:45.789 +00:00 [ERR] Error creating task
 ```
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Erro de Conexão à Base de Dados
 
@@ -417,7 +417,7 @@ Failed to bind to address https://localhost:7193
 **Solução:**
 Altere as portas em `Properties/launchSettings.json` ou encerre o processo que está a usar a porta.
 
-## 📖 Documentação API
+## Documentação API
 
 Aceda à documentação interativa Swagger em:
 
@@ -430,10 +430,10 @@ A documentação inclui:
 - Schemas de request/response
 - Possibilidade de testar diretamente no browser
 
-## 👥 Autor
+## Autor
 
 Projeto desenvolvido como desafio técnico para demonstração de competências em .NET 8.0, SQL Server e ADO.NET.
 
-## 📄 Licença
+## Licença
 
 Este projeto é de uso educacional e demonstrativo.
