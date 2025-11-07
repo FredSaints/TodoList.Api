@@ -71,7 +71,6 @@ public class TasksController : ControllerBase
                 PageSize = pageSize
             };
 
-            _logger.LogInformation("Retrieved {Count} tasks for page {PageNumber}", tasks.Count, pageNumber);
             return Ok(response);
         }
         catch (Exception ex)
@@ -99,11 +98,9 @@ public class TasksController : ControllerBase
 
             if (task == null)
             {
-                _logger.LogWarning("Task {Id} not found", id);
                 return NotFound(new { Message = $"Task with ID {id} not found" });
             }
 
-            _logger.LogInformation("Task {Id} retrieved successfully", id);
             return Ok(task);
         }
         catch (Exception ex)
@@ -133,7 +130,6 @@ public class TasksController : ControllerBase
         var validationResult = await _createValidator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
-            _logger.LogWarning("Invalid model state for task creation");
             return BadRequest(validationResult.ToDictionary());
         }
 
@@ -148,8 +144,6 @@ public class TasksController : ControllerBase
                 Task = task
             };
 
-            _logger.LogInformation("Task {Id} created successfully", task.Id);
-
             return CreatedAtAction(
                 nameof(GetTaskById),
                 new { id = task.Id },
@@ -158,7 +152,6 @@ public class TasksController : ControllerBase
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error creating task");
             return BadRequest(new { ex.Message });
         }
         catch (Exception ex)
@@ -193,7 +186,6 @@ public class TasksController : ControllerBase
         var validationResult = await _updateValidator.ValidateAsync(request);
         if (!validationResult.IsValid)
         {
-            _logger.LogWarning("Invalid model state for task update");
             return BadRequest(validationResult.ToDictionary());
         }
 
@@ -208,16 +200,13 @@ public class TasksController : ControllerBase
 
             if (task == null)
             {
-                _logger.LogWarning("Task {Id} not found for update", id);
                 return NotFound(new { Message = $"Task with ID {id} not found" });
             }
 
-            _logger.LogInformation("Task {Id} updated successfully", id);
             return Ok(new MessageResponse { Message = "Task updated successfully" });
         }
         catch (ArgumentException ex)
         {
-            _logger.LogWarning(ex, "Validation error updating task {Id}", id);
             return BadRequest(new { ex.Message });
         }
         catch (Exception ex)
@@ -245,11 +234,9 @@ public class TasksController : ControllerBase
 
             if (!deleted)
             {
-                _logger.LogWarning("Task {Id} not found for deletion", id);
                 return NotFound(new { Message = $"Task with ID {id} not found" });
             }
 
-            _logger.LogInformation("Task {Id} deleted successfully", id);
             return Ok(new MessageResponse { Message = "Task removed successfully" });
         }
         catch (Exception ex)

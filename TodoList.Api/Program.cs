@@ -1,5 +1,6 @@
 using FluentValidation;
 using Serilog;
+using System.Reflection;
 using TodoList.Api.Data.Implementations;
 using TodoList.Api.Data.Interfaces;
 
@@ -19,14 +20,17 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddScoped<IDatabase, Database>();
 builder.Services.AddScoped<ITaskRepository, TaskRepository>();
 
-// Swagger
+// Swagger with XML documentation
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    // Include XML comments in Swagger
+    var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
+    options.IncludeXmlComments(xmlPath);
+});
 
 var app = builder.Build();
-
-// Use Serilog request logging
-app.UseSerilogRequestLogging();
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())

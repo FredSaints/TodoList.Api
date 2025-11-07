@@ -1,11 +1,11 @@
-﻿using System.Data;
+﻿using Microsoft.Data.SqlClient;
 using TodoList.Api.Data.Interfaces;
 using SqlException = Microsoft.Data.SqlClient.SqlException;
 
 namespace TodoList.Api.Data.Implementations;
 
 /// <summary>
-/// Database connection management implementation using ADO.NET
+/// SQL Server database connection management implementation using ADO.NET
 /// </summary>
 public class Database : IDatabase
 {
@@ -22,13 +22,12 @@ public class Database : IDatabase
     /// <summary>
     /// Creates and opens a new SQL Server connection
     /// </summary>
-    public IDbConnection CreateConnection()
+    public SqlConnection CreateConnection()
     {
         try
         {
-            var connection = new Microsoft.Data.SqlClient.SqlConnection(_connectionString);
+            var connection = new SqlConnection(_connectionString);
             connection.Open();
-            _logger.LogDebug("Database connection opened successfully");
             return connection;
         }
         catch (SqlException ex)

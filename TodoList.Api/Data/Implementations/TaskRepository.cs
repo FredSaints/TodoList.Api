@@ -34,7 +34,7 @@ public class TaskRepository : ITaskRepository
 
         try
         {
-            using var connection = (SqlConnection)_database.CreateConnection();
+            using var connection = _database.CreateConnection();
             using var command = new SqlCommand("sp_GetAllTasks", connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -70,9 +70,6 @@ public class TaskRepository : ITaskRepository
                 }
             }
 
-            _logger.LogInformation("Retrieved {Count} tasks (Page {PageNumber}, Total: {TotalCount})",
-                tasks.Count, pageNumber, totalCount);
-
             return (tasks, totalCount);
         }
         catch (SqlException ex)
@@ -86,7 +83,7 @@ public class TaskRepository : ITaskRepository
     {
         try
         {
-            using var connection = (SqlConnection)_database.CreateConnection();
+            using var connection = _database.CreateConnection();
             using var command = new SqlCommand("sp_GetTaskById", connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -98,12 +95,9 @@ public class TaskRepository : ITaskRepository
 
             if (await reader.ReadAsync(cancellationToken))
             {
-                var task = MapReaderToTask(reader);
-                _logger.LogInformation("Task {Id} retrieved successfully", id);
-                return task;
+                return MapReaderToTask(reader);
             }
 
-            _logger.LogWarning("Task {Id} not found", id);
             return null;
         }
         catch (SqlException ex)
@@ -120,7 +114,7 @@ public class TaskRepository : ITaskRepository
     {
         try
         {
-            using var connection = (SqlConnection)_database.CreateConnection();
+            using var connection = _database.CreateConnection();
             using var command = new SqlCommand("sp_CreateTask", connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -140,9 +134,7 @@ public class TaskRepository : ITaskRepository
 
             if (await reader.ReadAsync(cancellationToken))
             {
-                var task = MapReaderToTask(reader);
-                _logger.LogInformation("Task created successfully with ID {Id}", task.Id);
-                return task;
+                return MapReaderToTask(reader);
             }
 
             throw new InvalidOperationException("Failed to create task - no data returned");
@@ -169,7 +161,7 @@ public class TaskRepository : ITaskRepository
     {
         try
         {
-            using var connection = (SqlConnection)_database.CreateConnection();
+            using var connection = _database.CreateConnection();
             using var command = new SqlCommand("sp_UpdateTask", connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -196,12 +188,9 @@ public class TaskRepository : ITaskRepository
 
             if (await reader.ReadAsync(cancellationToken))
             {
-                var task = MapReaderToTask(reader);
-                _logger.LogInformation("Task {Id} updated successfully", id);
-                return task;
+                return MapReaderToTask(reader);
             }
 
-            _logger.LogWarning("Task {Id} not found for update", id);
             return null;
         }
         catch (SqlException ex)
@@ -225,7 +214,7 @@ public class TaskRepository : ITaskRepository
     {
         try
         {
-            using var connection = (SqlConnection)_database.CreateConnection();
+            using var connection = _database.CreateConnection();
             using var command = new SqlCommand("sp_DeleteTask", connection)
             {
                 CommandType = CommandType.StoredProcedure
@@ -237,15 +226,9 @@ public class TaskRepository : ITaskRepository
 
             if (await reader.ReadAsync(cancellationToken))
             {
-                var success = reader.GetInt32(0) == 1;
-                if (success)
-                {
-                    _logger.LogInformation("Task {Id} deleted successfully", id);
-                }
-                return success;
+                return reader.GetInt32(0) == 1;
             }
 
-            _logger.LogWarning("Task {Id} not found for deletion", id);
             return false;
         }
         catch (SqlException ex)
