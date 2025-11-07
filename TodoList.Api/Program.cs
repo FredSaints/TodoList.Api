@@ -1,6 +1,7 @@
 using FluentValidation;
 using Serilog;
 using System.Reflection;
+using TodoList.Api.Converters;
 using TodoList.Api.Data.Implementations;
 using TodoList.Api.Data.Interfaces;
 
@@ -11,7 +12,11 @@ builder.Host.UseSerilog((context, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
 
 // Add services
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new CustomDateTimeConverter());
+    });
 
 // Register FluentValidation validators
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
