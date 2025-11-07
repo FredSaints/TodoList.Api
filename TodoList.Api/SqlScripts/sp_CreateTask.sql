@@ -33,7 +33,7 @@ BEGIN
     END
 
     INSERT INTO dbo.Tasks (Title, Description, CreateDate, IsCompleted)
-    VALUES (@Title, @Description, GETDATE(), 0);
+    VALUES (@Title, @Description, GETUTCDATE(), 0);
 
     -- Return the newly created task
     SELECT

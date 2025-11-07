@@ -19,7 +19,7 @@ BEGIN
         Id INT IDENTITY(1,1) PRIMARY KEY,
         Title NVARCHAR(100) NOT NULL,
         Description NVARCHAR(MAX) NULL,
-        CreateDate DATETIME2 NOT NULL DEFAULT GETDATE(),
+        CreateDate DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
         IsCompleted BIT NOT NULL DEFAULT 0,
         CONSTRAINT CK_Title_Length CHECK (LEN(Title) >= 3 AND LEN(Title) <= 100)
     );
