@@ -75,7 +75,8 @@ public class TaskRepository : ITaskRepository
         catch (SqlException ex)
         {
             _logger.LogError(ex, "Database error while retrieving tasks");
-            throw new InvalidOperationException("Error retrieving tasks from database", ex);
+            //throw new InvalidOperationException("Error retrieving tasks from database", ex);
+            throw;
         }
     }
 
@@ -102,8 +103,9 @@ public class TaskRepository : ITaskRepository
         }
         catch (SqlException ex)
         {
-            _logger.LogError(ex, "Database error while retrieving task {Id}", id);
-            throw new InvalidOperationException($"Error retrieving task {id} from database", ex);
+            _logger.LogError(ex, $"Database error while retrieving task {id}");
+            //throw new InvalidOperationException($"Error retrieving task {id} from database", ex);
+            throw;
         }
     }
 

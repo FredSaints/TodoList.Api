@@ -76,7 +76,7 @@ public class TasksController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving tasks");
-            return StatusCode(500, new { Message = "An error occurred while retrieving tasks" });
+            return StatusCode(500, new { Message = "An error occurred while retrieving tasks"});
         }
     }
 
@@ -98,7 +98,7 @@ public class TasksController : ControllerBase
 
             if (task == null)
             {
-                return NotFound(new { Message = $"Task with ID {id} not found" });
+                return NotFound(new { Message = $"Task not found" });
             }
 
             return Ok(task);
@@ -200,7 +200,7 @@ public class TasksController : ControllerBase
 
             if (task == null)
             {
-                return NotFound(new { Message = $"Task with ID {id} not found" });
+                return NotFound(new { Message = "Task not found" });
             }
 
             return Ok(new MessageResponse { Message = "Task updated successfully" });
@@ -234,7 +234,7 @@ public class TasksController : ControllerBase
 
             if (!deleted)
             {
-                return NotFound(new { Message = $"Task with ID {id} not found" });
+                return NotFound(new { Message = $"Task not found" });
             }
 
             return Ok(new MessageResponse { Message = "Task removed successfully" });
